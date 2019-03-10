@@ -998,6 +998,25 @@ BdsEntry (
 
     EfiBootManagerHotkeyBoot ();
 
+    //
+    // Boot to "BootNext"
+    //
+    UnicodeSPrint (BootNextVariableName, sizeof (BootNextVariableName), L"Boot%04x", 3);
+    Status = EfiBootManagerVariableToLoadOption (BootNextVariableName, &LoadOption);
+    if (!EFI_ERROR (Status)) {
+      EfiBootManagerBoot (&LoadOption);
+      EfiBootManagerFreeLoadOption (&LoadOption);
+      if ((LoadOption.Status == EFI_SUCCESS) &&
+          (BootManagerMenuStatus != EFI_NOT_FOUND) &&
+          (LoadOption.OptionNumber != BootManagerMenu.OptionNumber)) {
+        //
+        // Boot to Boot Manager Menu upon EFI_SUCCESS
+        // Exception: Do not boot again when the BootNext points to Boot Manager Menu.
+        //
+        EfiBootManagerBoot (&BootManagerMenu);
+      }
+    }
+
     if (BootNext != NULL) {
       //
       // Delete "BootNext" NV variable before transferring control to it to prevent loops.
