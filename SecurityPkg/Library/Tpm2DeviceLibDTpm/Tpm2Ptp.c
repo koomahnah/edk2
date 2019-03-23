@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 #include <IndustryStandard/Tpm20.h>
 
+#include <Library/ArmSmcLib.h>
 #include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/IoLib.h>
@@ -50,6 +51,7 @@ Tpm2IsPtpPresence (
   )
 {
   UINT8                             RegRead;
+  DEBUG((DEBUG_ERROR, "%a\n", __func__));
 
   RegRead = MmioRead8 ((UINTN)Reg);
   if (RegRead == 0xFF) {
@@ -111,6 +113,7 @@ PtpCrbRequestUseTpm (
   EFI_STATUS                        Status;
 
   if (!Tpm2IsPtpPresence (CrbReg)) {
+    DEBUG((DEBUG_ERROR, "Tpm2IsPtpPresence failed\n"));
     return EFI_NOT_FOUND;
   }
 
@@ -124,6 +127,21 @@ PtpCrbRequestUseTpm (
   return Status;
 }
 
+#define ARM_SMC_ID_TPM_CRB 0xdeadb33f
+
+STATIC
+VOID
+CrbSmcStart (
+  )
+{
+  ARM_SMC_ARGS ArmSmcArgs;
+
+  DEBUG((DEBUG_ERROR, "Calling smc\n"));
+
+  ArmSmcArgs.Arg0 = ARM_SMC_ID_TPM_CRB;
+  ArmCallSmc (&ArmSmcArgs);
+  DEBUG((DEBUG_ERROR, "Back from smc\n"));
+}
 /**
   Send a command to TPM for execution and return response data.
 
@@ -157,22 +175,22 @@ PtpCrbTpmCommand (
   DEBUG_CODE (
     UINTN  DebugSize;
 
-    DEBUG ((EFI_D_VERBOSE, "PtpCrbTpmCommand Send - "));
+    DEBUG ((EFI_D_ERROR, "PtpCrbTpmCommand Send - "));
     if (SizeIn > 0x100) {
       DebugSize = 0x40;
     } else {
       DebugSize = SizeIn;
     }
     for (Index = 0; Index < DebugSize; Index++) {
-      DEBUG ((EFI_D_VERBOSE, "%02x ", BufferIn[Index]));
+      DEBUG ((EFI_D_ERROR, "%02x ", BufferIn[Index]));
     }
     if (DebugSize != SizeIn) {
-      DEBUG ((EFI_D_VERBOSE, "...... "));
+      DEBUG ((EFI_D_ERROR, "...... "));
       for (Index = SizeIn - 0x20; Index < SizeIn; Index++) {
-        DEBUG ((EFI_D_VERBOSE, "%02x ", BufferIn[Index]));
+        DEBUG ((EFI_D_ERROR, "%02x ", BufferIn[Index]));
       }
     }
-    DEBUG ((EFI_D_VERBOSE, "\n"));
+    DEBUG ((EFI_D_ERROR, "\n"));
   );
   TpmOutSize         = 0;
 
@@ -202,6 +220,8 @@ PtpCrbTpmCommand (
   // of 1 by software to Request.cmdReady, as indicated by the Status field
   // being cleared to 0.
   //
+  // XXX: Not needed on CRB/SMC
+#if 0
   MmioWrite32((UINTN)&CrbReg->CrbControlRequest, PTP_CRB_CONTROL_AREA_REQUEST_COMMAND_READY);
   Status = PtpCrbWaitRegisterBits (
              &CrbReg->CrbControlRequest,
@@ -210,9 +230,11 @@ PtpCrbTpmCommand (
              PTP_TIMEOUT_C
              );
   if (EFI_ERROR (Status)) {
+    DEBUG((DEBUG_ERROR, "Request ready timeout\n"));
     Status = EFI_DEVICE_ERROR;
     goto GoIdle_Exit;
   }
+#endif
   Status = PtpCrbWaitRegisterBits (
              &CrbReg->CrbControlStatus,
              0,
@@ -220,6 +242,7 @@ PtpCrbTpmCommand (
              PTP_TIMEOUT_C
              );
   if (EFI_ERROR (Status)) {
+    DEBUG((DEBUG_ERROR, "TPM idle timeout\n"));
     Status = EFI_DEVICE_ERROR;
     goto GoIdle_Exit;
   }
@@ -245,7 +268,9 @@ PtpCrbTpmCommand (
   // Command Execution occurs after receipt of a 1 to Start and the TPM
   // clearing Start to 0.
   //
+  DEBUG((DEBUG_ERROR, "Sending start\n"));
   MmioWrite32((UINTN)&CrbReg->CrbControlStart, PTP_CRB_CONTROL_START);
+  CrbSmcStart();
   Status = PtpCrbWaitRegisterBits (
              &CrbReg->CrbControlStart,
              0,
@@ -257,6 +282,7 @@ PtpCrbTpmCommand (
     // Command Completion check timeout. Cancel the currently executing command by writing TPM_CRB_CTRL_CANCEL,
     // Expect TPM_RC_CANCELLED or successfully completed response.
     //
+    DEBUG((DEBUG_ERROR, "Completion check timeout\n"));
     MmioWrite32((UINTN)&CrbReg->CrbControlCancel, PTP_CRB_CONTROL_CANCEL);
     Status = PtpCrbWaitRegisterBits (
                &CrbReg->CrbControlStart,
@@ -273,7 +299,8 @@ PtpCrbTpmCommand (
       Status = EFI_DEVICE_ERROR;
       goto GoIdle_Exit;
     }
-  }
+  } else
+    DEBUG((DEBUG_ERROR, "No error on startup\n"));
 
   //
   // STEP 4:
@@ -422,6 +449,8 @@ Tpm2GetPtpInterface (
 {
   PTP_CRB_INTERFACE_IDENTIFIER  InterfaceId;
   PTP_FIFO_INTERFACE_CAPABILITY InterfaceCapability;
+
+  DEBUG((DEBUG_ERROR, "%a: registers at 0x%lx\n", __func__, (UINT64)Register));
 
   if (!Tpm2IsPtpPresence (Register)) {
     return Tpm2PtpInterfaceMax;
@@ -608,15 +637,19 @@ DTpm2RequestUseTpm (
   )
 {
   TPM2_PTP_INTERFACE_TYPE  PtpInterface;
+  DEBUG((DEBUG_ERROR, "%a\n", __func__));
 
   PtpInterface = PcdGet8(PcdActiveTpmInterfaceType);
   switch (PtpInterface) {
   case Tpm2PtpInterfaceCrb:
+    DEBUG((DEBUG_ERROR, "%a: crb\n", __func__));
     return PtpCrbRequestUseTpm ((PTP_CRB_REGISTERS_PTR) (UINTN) PcdGet64 (PcdTpmBaseAddress));
   case Tpm2PtpInterfaceFifo:
   case Tpm2PtpInterfaceTis:
+    DEBUG((DEBUG_ERROR, "%a: tis / fifo\n", __func__));
     return TisPcRequestUseTpm ((TIS_PC_REGISTERS_PTR) (UINTN) PcdGet64 (PcdTpmBaseAddress));
   default:
+    DEBUG((DEBUG_ERROR, "%a: not found\n", __func__));
     return EFI_NOT_FOUND;
   }
 }

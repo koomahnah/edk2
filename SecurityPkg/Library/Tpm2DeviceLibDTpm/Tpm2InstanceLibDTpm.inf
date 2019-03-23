@@ -37,10 +37,12 @@
   Tpm2InstanceLibDTpm.c
 
 [Packages]
+  ArmPkg/ArmPkg.dec
   MdePkg/MdePkg.dec
   SecurityPkg/SecurityPkg.dec
 
 [LibraryClasses]
+  ArmSmcLib
   BaseLib
   BaseMemoryLib
   IoLib

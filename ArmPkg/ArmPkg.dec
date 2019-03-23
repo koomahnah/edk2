@@ -34,6 +34,7 @@
 
 [LibraryClasses.common]
   ArmLib|Include/Library/ArmLib.h
+  ArmSmcLib|Include/Library/ArmSmcLib.h
   ArmMmuLib|Include/Library/ArmMmuLib.h
   SemihostLib|Include/Library/Semihosting.h
   DefaultExceptionHandlerLib|Include/Library/DefaultExceptionHandlerLib.h
