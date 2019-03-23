@@ -67,6 +67,7 @@ Tpm2RequestUseTpm (
   VOID
   )
 {
+  DEBUG((DEBUG_ERROR, "%a\n", __func__));
   if (mInternalTpm2DeviceInterface.Tpm2RequestUseTpm == NULL) {
     return EFI_UNSUPPORTED;
   }
@@ -88,11 +89,14 @@ Tpm2RegisterTpm2DeviceLib (
   IN TPM2_DEVICE_INTERFACE   *Tpm2Device
   )
 {
+  DEBUG((DEBUG_ERROR, "%a, Tpm2Device=0x%lx\n", __func__, (UINT64)Tpm2Device));
   if (!CompareGuid (PcdGetPtr(PcdTpmInstanceGuid), &Tpm2Device->ProviderGuid)){
     DEBUG ((DEBUG_WARN, "WARNING: Tpm2RegisterTpm2DeviceLib - does not support %g registration\n", &Tpm2Device->ProviderGuid));
     return EFI_UNSUPPORTED;
   }
 
+  DEBUG((DEBUG_ERROR, "Copying memory\n"));
   CopyMem (&mInternalTpm2DeviceInterface, Tpm2Device, sizeof(mInternalTpm2DeviceInterface));
+  DEBUG((DEBUG_ERROR, "Copied\n"));
   return EFI_SUCCESS;
 }

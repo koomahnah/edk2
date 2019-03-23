@@ -2538,6 +2538,7 @@ DriverEntry (
     return EFI_DEVICE_ERROR;
   }
 
+  DEBUG((DEBUG_ERROR, "%a: calling Tpm2RequestUseTpm ()\n", __func__));
   Status = Tpm2RequestUseTpm ();
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "TPM2 not detected!\n"));

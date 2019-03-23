@@ -66,6 +66,9 @@ AcpiPlatformEntryPoint (
   EFI_STATUS Status;
   EFI_EVENT  RootBridgesConnected;
 
+  UINT8 *ptr = (UINT8 *) 0x7ddffff0;
+  DEBUG((DEBUG_ERROR, "ptr val: %d\n", *ptr));
+
   //
   // If the platform doesn't support PCI, or PCI enumeration has been disabled,
   // install the tables at once, and let the entry point's return code reflect

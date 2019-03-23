@@ -111,7 +111,9 @@ Tpm2InstanceLibDTpmConstructor (
   TPM2_PTP_INTERFACE_TYPE  PtpInterface;
   UINT8                    IdleByPass;
 
+  DEBUG((DEBUG_ERROR, "%a\n", __func__));
   Status = Tpm2RegisterTpm2DeviceLib (&mDTpm2InternalTpm2Device);
+  DEBUG((DEBUG_ERROR, "back in %a\n", __func__));
   if ((Status == EFI_SUCCESS) || (Status == EFI_UNSUPPORTED)) {
     //
     // Unsupported means platform policy does not need this instance enabled.
@@ -120,6 +122,9 @@ Tpm2InstanceLibDTpmConstructor (
       //
       // Cache current active TpmInterfaceType only when needed
       //
+      DEBUG((DEBUG_ERROR, "Getting pcd...\n"));
+      UINT8 t = PcdGet8(PcdActiveTpmInterfaceType);
+      DEBUG((DEBUG_ERROR, "got pcd %d.\n", t));
       if (PcdGet8(PcdActiveTpmInterfaceType) == 0xFF) {
         PtpInterface = Tpm2GetPtpInterface ((VOID *) (UINTN) PcdGet64 (PcdTpmBaseAddress));
         PcdSet8S(PcdActiveTpmInterfaceType, PtpInterface);
