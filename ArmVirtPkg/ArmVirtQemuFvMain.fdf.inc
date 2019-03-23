@@ -209,3 +209,5 @@ READ_LOCK_STATUS   = TRUE
   # Ramdisk support
   #
   INF MdeModulePkg/Universal/Disk/RamDiskDxe/RamDiskDxe.inf
+
+  INF  SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf

@@ -67,6 +67,10 @@
   PciSegmentLib|MdePkg/Library/BasePciSegmentLibPci/BasePciSegmentLibPci.inf
   PciHostBridgeLib|ArmVirtPkg/Library/FdtPciHostBridgeLib/FdtPciHostBridgeLib.inf
 
+  Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
+  Tcg2PhysicalPresenceLib|OvmfPkg/Library/Tcg2PhysicalPresenceLibQemu/DxeTcg2PhysicalPresenceLib.inf
+  Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
+
 [LibraryClasses.common.DXE_DRIVER]
   ReportStatusCodeLib|MdeModulePkg/Library/DxeReportStatusCodeLib/DxeReportStatusCodeLib.inf
 
@@ -214,6 +218,11 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSmbiosVersion|0x0300
   gEfiMdeModulePkgTokenSpaceGuid.PcdSmbiosDocRev|0x0
   gUefiOvmfPkgTokenSpaceGuid.PcdQemuSmbiosValidated|FALSE
+
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmInstanceGuid|{0x5a, 0xf2, 0x6b, 0x28, 0xc3, 0xc2, 0x8c, 0x40, 0xb3, 0xb4, 0x25, 0xe6, 0x75, 0x8b, 0x73, 0x17}
+  gEfiSecurityPkgTokenSpaceGuid.PcdTpmBaseAddress|0x7ddf0000
+  gEfiSecurityPkgTokenSpaceGuid.PcdCRBIdleByPass|1
+  gEfiSecurityPkgTokenSpaceGuid.PcdActiveTpmInterfaceType|0x2
 
 ################################################################################
 #
@@ -422,4 +431,13 @@
   OvmfPkg/AcpiPlatformDxe/QemuFwCfgAcpiPlatformDxe.inf {
     <LibraryClasses>
       NULL|ArmVirtPkg/Library/FdtPciPcdProducerLib/FdtPciPcdProducerLib.inf
+  }
+
+  SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf {
+    <LibraryClasses>
+      HashLib|SecurityPkg/Library/HashLibBaseCryptoRouter/HashLibBaseCryptoRouterDxe.inf
+      Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibRouter/Tpm2DeviceLibRouterDxe.inf
+      NULL|SecurityPkg/Library/Tpm2DeviceLibDTpm/Tpm2InstanceLibDTpm.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha1/HashInstanceLibSha1.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha256/HashInstanceLibSha256.inf
   }
