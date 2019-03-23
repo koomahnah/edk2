@@ -127,7 +127,7 @@ PtpCrbRequestUseTpm (
   return Status;
 }
 
-#define ARM_SMC_ID_TPM_CRB 0xdeadb33f
+#define ARM_SMC_ID_TPM_CRB 0x8400eded
 
 STATIC
 VOID
