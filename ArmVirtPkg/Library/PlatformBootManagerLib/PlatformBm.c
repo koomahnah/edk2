@@ -833,7 +833,7 @@ PlatformBootManagerAfterConsole (
     );
 
   RemoveStaleFvFileOptions ();
-  SetBootOrderFromQemu ();
+//  SetBootOrderFromQemu ();
 
   PlatformBmPrintScRegisterHandler ();
 }

@@ -360,7 +360,7 @@
   MdeModulePkg/Universal/Network/Mtftp4Dxe/Mtftp4Dxe.inf
   MdeModulePkg/Universal/Network/Udp4Dxe/Udp4Dxe.inf
   NetworkPkg/TcpDxe/TcpDxe.inf
-  NetworkPkg/UefiPxeBcDxe/UefiPxeBcDxe.inf
+#  NetworkPkg/UefiPxeBcDxe/UefiPxeBcDxe.inf
   NetworkPkg/IScsiDxe/IScsiDxe.inf
 !if $(NETWORK_IP6_ENABLE) == TRUE
   NetworkPkg/Ip6Dxe/Ip6Dxe.inf
